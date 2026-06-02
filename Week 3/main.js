@@ -23,3 +23,14 @@ btn.addEventListener("click", function () {
         console.log("Nota agregada: ", item.innerText);
     }
 });
+
+// Event listener to eliminate notes - Task 4
+lista.addEventListener("click", function (e) {
+    // If the button is clicked it eliminates the note and shows on console the note eliminated
+    if(e.target.id === "btnDel") {
+        const item = e.target.parentElement;
+        lista.removeChild(item);
+        console.log("Nota eliminada: ", item.innerText);
+    }
+})
+
