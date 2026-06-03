@@ -57,7 +57,7 @@ lista.addEventListener("click", function (e) {
 
         // Remove the note from the DOM
         lista.removeChild(item);
-        console.log("Note removed: ", item.innerText);
+        console.log("Note removed: ", item);
 
         // Remove the note from localStorage - Task 5
         const savedNotes = JSON.parse(localStorage.getItem("notes"));
