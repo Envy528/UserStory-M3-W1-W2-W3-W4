@@ -1,6 +1,7 @@
 // Get the form and info box elements
 const form = document.getElementById("product-form");
 const infoBox = document.getElementById("info");
+const productsList = document.getElementById("product-list");
 
 // Add an event listener to the form submission
 form.addEventListener("submit", (e)=>{
@@ -24,6 +25,33 @@ form.addEventListener("submit", (e)=>{
         setTimeout(() => {
             infoBox.innerHTML = "";
         }, 3000);
+
+        // Add the product to the list
+        addToList(productName, productPrice, productDescription);
     }
 
+})
+
+// Function that manages all the logic to add a product to the list
+function addToList(pName, pPrice, pDescription){
+    const listItem = document.createElement("li");
+    const itemContent = document.createElement("p");
+    const itemDelButton = document.createElement("button");
+
+    itemContent.textContent = `Name: ${pName}
+    Price: $${pPrice}
+    Description: ${pDescription}`;
+    itemDelButton.textContent = "Delete";
+
+    listItem.appendChild(itemContent);
+    listItem.appendChild(itemDelButton);
+    productsList.appendChild(listItem);
+}
+
+// event delegation to manage the delete button of each product
+productsList.addEventListener("click", (e)=>{
+    if (e.target.tagName === "BUTTON"){
+        const itemToDelete = e.target.parentElement;
+        productsList.removeChild(itemToDelete);
+    }
 })

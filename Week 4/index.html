@@ -7,39 +7,56 @@
     <title>Document</title>
     <style>
         body {
+            margin: 0;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            background: #eef2f7;
             font-family: Arial, sans-serif;
-            margin: 20px;
+            color: #111;
+            padding: 20px;
+        }
+
+        main {
+            width: min(100%, 460px);
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 18px 30px rgba(0, 0, 0, 0.08);
         }
 
         form {
             display: flex;
             flex-direction: column;
-            align-items: center ;
+            align-items: stretch;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
         label {
-            display: block;
-            margin-top: 10px;
+            font-size: 0.95rem;
+            margin-top: 8px;
         }
 
         input {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
             margin-top: 5px;
-            max-width: 400px;
+            box-sizing: border-box;
         }
 
         button {
             margin-top: 10px;
             padding: 10px 15px;
-            background-color: #007BFF;
+            background-color: #007bff;
             color: white;
             border: none;
+            border-radius: 8px;
             cursor: pointer;
+            width: fit-content;
         }
 
         button:hover {
@@ -49,29 +66,44 @@
         ul {
             list-style-type: none;
             padding: 0;
+            margin: 0;
         }
 
         li {
-            background-color: #f9f9f9;
+            background-color: #f7f8fb;
             margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e1e5eb;
         }
 
         #info {
             display: flex;
             justify-content: center;
+            margin-bottom: 10px;
         }
-        .good-info {
-            padding: 1rem;
+
+        .good-info,
+        .bad-info {
+            padding: 0.9rem 1rem;
             border-radius: 10px;
-            background-color: #56ff6479;
+            font-size: 0.95rem;
+        }
+
+        .good-info {
+            background-color: #e6ffed;
+            color: #1f7a3a;
         }
 
         .bad-info {
-            padding: 1rem;
-            border-radius: 10px;
-            background-color: #ff565679;
+            background-color: #ffe9e9;
+            color: #a83232;
+        }
+
+        li p {
+            margin: 0;
+            line-height: 1.8;
+            white-space: pre-line;
         }
     </style>
 </head>
@@ -79,7 +111,7 @@
 <body>
     <main>
         <h1>Aplicación de Productos</h1>
-            <div id="info"></div><!--Show info about the inputs-->
+            <div id="info"><strong class="good-info">There's empty fields, please fill de form</strong></div><!--Show info about the inputs-->
 
         <form id="product-form"> <!--Form to get data from the user-->
             <label for="product-name">Product Name:</label>
