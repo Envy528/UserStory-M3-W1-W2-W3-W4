@@ -1,0 +1,11 @@
+{
+  "products": [
+    {
+      "id": "CbOWgozOPoY",
+      "name": "Jabón",
+      "price": "5.000",
+      "description": "Nivea"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

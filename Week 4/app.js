@@ -1,104 +1,197 @@
+// Variable for the PUT method
+let idEditItem = null;
+// json-server URL
+const url = "http://localhost:3000/products";
 // array for localstorage
 let products = JSON.parse(localStorage.getItem("products")) || [];
 
-// Get the form and info box elements
+// DOM elements
 const form = document.getElementById("product-form");
 const infoBox = document.getElementById("info");
 const productsList = document.getElementById("product-list");
+const submitBtn = document.getElementById("add-btn");
 
-// Add an event listener to the form submission
-form.addEventListener("submit", (e) => {
-    e.preventDefault() // Prevent the form to refresh the page
-    // Get the values from the form inputs
-    const productName = document.getElementById("product-name").value;
-    const productPrice = document.getElementById("product-price").value;
-    const productDescription = document.getElementById("product-description").value;
+// Load products from API or localStorage
+async function loadProducts() {
+    try {
+        const res = await fetch(url); // Fetch products from the API
 
-    // Validate the inputs
-    if (!productName || !productPrice || !productDescription) {
-        // If there's empty fields, show an error message
-        console.error("There's empty fields, please fill de form");
-        infoBox.innerHTML = `<strong class="bad-info">There's empty fields, please fill de form</strong>`;
-    } else {
-        // If all fields are filled, show a success message
-        console.log("Product Created Successfully");
-        infoBox.innerHTML = `<strong class="good-info">Product Created Successfully</strong>`;
-
-        // Clear the info box after 3 seconds
-        setTimeout(() => {
-            infoBox.innerHTML = "";
-        }, 2000);
-
-        // Add the product to the list
-        addToList(productName, productPrice, productDescription);
-        // Clear the form inputs
-        form.reset();
+        if (!res.ok) { // Checking if the response is ok, if not, throws an error
+            throw new Error("Failed to load products from API");
+        }
+        // parses the response to the products array and saves it to localStorage
+        products = await res.json();
+        localStorage.setItem("products", JSON.stringify(products));
+    } catch (error) {
+        // Shows error message if there's an error with the API and loads products from localStorage
+        console.error(`Error loading products: ${error}`);
+        infoBox.innerHTML = `<strong class="bad-info">Could not load products from API. Using local storage.</strong>`;
+        setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
+        products = JSON.parse(localStorage.getItem("products")) || [];
     }
-})
+    renderNotes();
+}
 
-// Function that manages all the logic to add a product to the list
-function addToList(pName, pPrice, pDescription) {
-    // Unique ID for the product to manage the localstorage
-    const productId = Date.now().toString();
+// Render products list
+function renderNotes() {
+    productsList.innerHTML = ""; // Clear existing list to avoid duplicates
 
-    // elements creation
-    const listItem = document.createElement("li");
-    const itemContent = document.createElement("p");
-    const itemDelButton = document.createElement("button");
+    // Render each product as a list item
+    products.forEach(product => {
+        // Create list item elements
+        const listItem = document.createElement("li");
+        const itemContent = document.createElement("p");
+        const itemDelButton = document.createElement("button");
+        const itemEditButton = document.createElement("button");
 
-    // element configuration
-    itemContent.textContent = `Name: ${pName}
-    Price: $${pPrice}
-    Description: ${pDescription}`;
-    itemDelButton.textContent = "Delete";
-    listItem.dataset.id = productId; // Unique ID for the li element to manage the localstorage
+        // configure list item content and delete button
+        itemContent.textContent = `Name: ${product.name} Price: $${product.price} Description: ${product.description}`;
+        itemDelButton.textContent = "Delete";
+        itemDelButton.className = "delete-btn"
+        itemEditButton.textContent = "Edit";
+        itemEditButton.className = "edit-btn"
+        listItem.dataset.id = product.id;
 
-    // append the elements to the list
-    listItem.appendChild(itemContent);
-    listItem.appendChild(itemDelButton);
-    productsList.appendChild(listItem);
+        // append all elements to the list item and then to the products list
+        listItem.appendChild(itemContent);
+        listItem.appendChild(itemEditButton);
+        listItem.appendChild(itemDelButton);
+        productsList.appendChild(listItem);
+    });
+}
 
-    // add the product to the array for localstorage
-    products.push({
+// Add new product to the list and localStorage
+async function addToList(pName, pPrice, pDescription) {
+    const productId = Date.now().toString(); // unique ID for the product
+    // product object creation
+    const product = {
         id: productId,
         name: pName,
         price: pPrice,
         description: pDescription
-    });
-    localStorage.setItem("products", JSON.stringify(products));
+    };
+    // Save the new product to the API and update localStorage and the rendered list
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(product)
+        })
+        if (!res.ok) { // Checking if the response is ok, if not, throws an error
+            throw new Error("Failed to save the product to the API");
+        }
+        const savedProduct = await res.json(); // Get the saved product from the response
+        products.push(savedProduct); // Add the saved product to the products array
+        localStorage.setItem("products", JSON.stringify(products)); // Updates the localstorage
+        renderNotes(); // Renders the new list with the new product added
+        infoBox.innerHTML = `<strong class="good-info">Product Created Successfully</strong>`;
+        setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
+    } catch (error) {
+        console.error(`Error saving the product: ${error}`);
+        infoBox.innerHTML = `<strong class="bad-info">Failed to save the product. Try again.</strong>`;
+        setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
+    }
 }
 
-// event delegation to manage the delete button of each product
-productsList.addEventListener("click", (e) => {
-    if (e.target.tagName === "BUTTON") {
-        // Get the product to delete and its data ID
+async function updateProduct(id, name, price, description) {
+    const product = { id, name, price, description };
+    // Send a PUT request to the API to update the product and update localStorage and the rendered list
+    try {
+        const res = await fetch(url + "/" + id, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(product)
+        });
+
+        if (!res.ok) { // Checking if the response is ok, if not, throws an error
+            throw new Error("Failed to update product");
+        }
+        // Get the updated product from the response, update the products array and localStorage, then re-render the list
+        const productUpdated = await res.json();
+        products = products.map(p => p.id === id ? productUpdated : p);
+        localStorage.setItem("products", JSON.stringify(products));
+        renderNotes();
+
+        // Reset the form and show success message
+        idEditItem = null;
+        submitBtn.textContent = "Add Product";
+        infoBox.innerHTML = `<strong class="good-info">Product Updated Successfully</strong>`;
+        setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
+
+    } catch (error) { // Shows error message if there's an error with the API
+        console.error(`Error updating the product: ${error}`);
+        infoBox.innerHTML = `<strong class="bad-info">Failed to update the product. Try again.</strong>`;
+        setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
+    }
+}
+
+// Event listener for delete button
+productsList.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("delete-btn")) { // Check if the clicked element is the delete button
+        // Gets information about the product to delete
         const itemToDelete = e.target.parentElement;
         const productId = itemToDelete.dataset.id;
 
-        products = products.filter(p => p.id !== productId); // updates the products array without the item to delete
-        localStorage.setItem("products", JSON.stringify(products));
-        itemToDelete.remove(); // remove the product from the DOM
+        // Send a DELETE request to the API 
+        try {
+            const res = await fetch(url + "/" + productId, {
+                method: "DELETE"
+            })
+
+            if (!res.ok) { // Checking if the response is ok, if not, throws an error
+                throw new Error("Failed to delete product")
+            }
+
+            // Filters the product to delete from the products array and updates localStorage without that product
+            products = products.filter(p => p.id !== productId);
+            localStorage.setItem("products", JSON.stringify(products));
+            renderNotes();
+            infoBox.innerHTML = `<strong class="good-info">Product deleted successfully</strong>`;
+            setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
+        } catch (error) {
+            console.error(`Error deleting the product: ${error}`);
+            infoBox.innerHTML = `<strong class="bad-info">Failed to delete the product. Try again.</strong>`;
+            setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
+        }
+    } else if (e.target.classList.contains("edit-btn")) {
+        const itemToEdit = e.target.parentElement;
+        const productId = itemToEdit.dataset.id;
+
+        const product = products.find(p => p.id == productId);
+        document.getElementById("product-name").value = product.name;
+        document.getElementById("product-price").value = product.price;
+        document.getElementById("product-description").value = product.description;
+
+        idEditItem = productId;
+        infoBox.innerHTML = `<strong class="good-info">Editing: ${product.name}</strong>`
+        submitBtn.textContent = "Save Changes";
     }
-})
+});
 
-// Load products from localstorage when the page loads and add them to the list
-document.addEventListener("DOMContentLoaded", () => {
-    products.forEach(product => {
-    // elements creation
-    const listItem = document.createElement("li");
-    const itemContent = document.createElement("p");
-    const itemDelButton = document.createElement("button");
+// Event listener for form submission
+form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // Prevents the form for refreshing the page
 
-    // element configuration
-    itemContent.textContent = `Name: ${product.name}
-    Price: $${product.price}
-    Description: ${product.description}`;
-    itemDelButton.textContent = "Delete";
-    listItem.dataset.id = product.id; // Unique ID for the li element to manage the localstorage
+    // Gets the values from the form inputs
+    const productName = document.getElementById("product-name").value;
+    const productPrice = document.getElementById("product-price").value;
+    const productDescription = document.getElementById("product-description").value;
 
-    // append the elements to the list
-    listItem.appendChild(itemContent);
-    listItem.appendChild(itemDelButton);
-    productsList.appendChild(listItem);
-    });
-})
+    if (!productName || !productPrice || !productDescription) { // Validates if there's empty fields
+        // Shows errors messages if there's empty fields
+        console.error("There's empty fields, please fill de form");
+        infoBox.innerHTML = `<strong class="bad-info">There's empty fields, please fill the form</strong>`;
+        setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
+
+    } else if (idEditItem) { // If the user is editing a product, it calls the updateProduct function
+        await updateProduct(idEditItem, productName, productPrice, productDescription);
+        form.reset();
+
+    } else { // Creates a new product
+        await addToList(productName, productPrice, productDescription);
+        form.reset();
+    }
+});
+
+// add event listener to load products when the DOM is fully loaded
+document.addEventListener("DOMContentLoaded", loadProducts);
