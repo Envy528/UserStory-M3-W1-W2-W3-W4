@@ -22,6 +22,7 @@ async function loadProducts() {
         // parses the response to the products array and saves it to localStorage
         products = await res.json();
         localStorage.setItem("products", JSON.stringify(products));
+        console.log("Products loaded successfully from API");
     } catch (error) {
         // Shows error message if there's an error with the API and loads products from localStorage
         console.error(`Error loading products: ${error}`);
@@ -84,6 +85,7 @@ async function addToList(pName, pPrice, pDescription) {
         products.push(savedProduct); // Add the saved product to the products array
         localStorage.setItem("products", JSON.stringify(products)); // Updates the localstorage
         renderNotes(); // Renders the new list with the new product added
+        console.log("Product Created Successfully");
         infoBox.innerHTML = `<strong class="good-info">Product Created Successfully</strong>`;
         setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
     } catch (error) {
@@ -115,6 +117,7 @@ async function updateProduct(id, name, price, description) {
         // Reset the form and show success message
         idEditItem = null;
         submitBtn.textContent = "Add Product";
+        console.log("Product Updated Successfully");
         infoBox.innerHTML = `<strong class="good-info">Product Updated Successfully</strong>`;
         setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
 
@@ -146,6 +149,7 @@ productsList.addEventListener("click", async (e) => {
             products = products.filter(p => p.id !== productId);
             localStorage.setItem("products", JSON.stringify(products));
             renderNotes();
+            console.log("Product deleted successfully");
             infoBox.innerHTML = `<strong class="good-info">Product deleted successfully</strong>`;
             setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
         } catch (error) {
@@ -163,6 +167,7 @@ productsList.addEventListener("click", async (e) => {
         document.getElementById("product-description").value = product.description;
 
         idEditItem = productId;
+        console.log(`Editing product: ${product.name}`);
         infoBox.innerHTML = `<strong class="good-info">Editing: ${product.name}</strong>`
         submitBtn.textContent = "Save Changes";
     }
@@ -179,7 +184,7 @@ form.addEventListener("submit", async (e) => {
 
     if (!productName || !productPrice || !productDescription) { // Validates if there's empty fields
         // Shows errors messages if there's empty fields
-        console.error("There's empty fields, please fill de form");
+        console.error("There's empty fields, please fill the form");
         infoBox.innerHTML = `<strong class="bad-info">There's empty fields, please fill the form</strong>`;
         setTimeout(() => { infoBox.innerHTML = ""; }, 2000);
 
